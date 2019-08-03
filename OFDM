@@ -1,0 +1,141 @@
+#OFDM Modulation for different modulation schemes
+
+clc;
+clear all;close all;
+
+%bit sequence
+totbit = 1024*4; %total number of bits to be transmitted
+subcar = 64; %splitting the total no of bits into 4 subcariers
+
+%BPSK
+
+databits = randi([0,1],1,totbit);
+%mapping (bpsk mod)
+bpskmod = pskmod(databits,2);
+%serial to parallel
+SertoPar1 = reshape(bpskmod,subcar,totbit/subcar);
+%applying ifft to each subcarrier
+for i = 1:totbit/subcar
+    subcarifft(:,i) = ifft(SertoPar1(:,i));
+end
+%parallel to serial
+PartoSer1 = subcarifft(:);
+%Addition of AWGN
+SNR = 0:2:35;berr = [];
+for i=0:2:35
+    channel = awgn(PartoSer1,i,'measured');
+    %serial to parallel
+    SertoPar2 = reshape(channel,subcar,totbit/subcar);
+    %applying fft to each subcarrier
+    for j = 1:totbit/subcar
+        subcarfft(:,j) = fft(SertoPar2(:,j));
+end
+    %parallel to serial
+    PartoSer2 = subcarfft(:).';
+    %decomposing (bpsk demod)
+    bpskdemod = pskdemod(PartoSer2,2);
+    [num ber] = biterr(databits,bpskdemod,[],'overall');
+    berr = [berr ber];
+end
+%flattening zero ber values
+for i = 1:18
+    if (berr(i)== 0)
+        berr(i) = 10^-4.5;
+end end
+%to plot SNR Vs BER
+figure(1);
+semilogy(SNR,berr,'-b','linewidth',2.0)
+hold on
+grid
+title('BER Vs SNR for different modulation schemes')
+xlabel('SNR(dB)');
+ylabel('BER');
+
+%QPSK
+
+databits = randi([0,3],1,totbit);
+bpskmod = pskmod(databits,4);
+SertoPar1 = reshape(bpskmod,subcar,totbit/subcar);
+for i = 1:totbit/subcar
+    subcarifft(:,i) = ifft(SertoPar1(:,i));
+end
+PartoSer1 = subcarifft(:);SNR = 0:2:35;berr = [];
+for i=0:2:35
+    channel = awgn(PartoSer1,i,'measured');
+    SertoPar2 = reshape(channel,subcar,totbit/subcar);
+    for j = 1:totbit/subcar
+        subcarfft(:,j) = fft(SertoPar2(:,j));
+end
+    PartoSer2 = subcarfft(:).';
+    bpskdemod = pskdemod(PartoSer2,4);
+    [num ber] = biterr(databits,bpskdemod,[],'overall');
+    berr = [berr ber];
+end
+for i = 1:18
+    if (berr(i)== 0)
+        berr(i) = 10^-4.5;
+end end
+semilogy(SNR,berr,'-dr','linewidth',2.0)
+hold on
+
+%16QAM
+
+m = 16;
+databits = randi([0,m-1],1,totbit);
+qammmod = qammod(databits,m);
+SertoPar1 = reshape(qammmod,subcar,totbit/subcar);
+for i = 1:totbit/subcar
+    subcarifft(:,i) = ifft(SertoPar1(:,i));
+end
+PartoSer1 = subcarifft(:);SNR = 0:2:35;berr = [];
+for i=0:2:35
+    channel = awgn(PartoSer1,i,'measured');
+    SertoPar2 = reshape(channel,subcar,totbit/subcar);
+    for j = 1:totbit/subcar
+        subcarfft(:,j) = fft(SertoPar2(:,j));
+end
+    PartoSer2 = subcarfft(:).';
+    qammdemod = qamdemod(PartoSer2,m);
+    [num ber] = biterr(databits,qammdemod,[],'overall');
+    berr = [berr ber];
+end
+for i = 1:18
+   if (berr(i)== 0)
+       berr(i) = 10^-4.5;
+end end
+semilogy(SNR,berr,'-om','linewidth',2.0)
+hold on
+
+%64QAM
+
+m = 64;
+databits = randi([0,m-1],1,totbit);
+qammmod = qammod(databits,m);
+SertoPar1 = reshape(qammmod,subcar,totbit/subcar);
+for i = 1:totbit/subcar
+    subcarifft(:,i) = ifft(SertoPar1(:,i));
+end
+PartoSer1 = subcarifft(:);SNR = 0:2:35;berr=[];
+for i=0:2:35
+    channel = awgn(PartoSer1,i,'measured');
+    SertoPar2 = reshape(channel,subcar,totbit/subcar);
+    for j = 1:totbit/subcar
+        subcarfft(:,j) = fft(SertoPar2(:,j));
+end
+    PartoSer2 = subcarfft(:).';
+    qammdemod = qamdemod(PartoSer2,m);
+    [num ber] = biterr(databits,qammdemod,[],'overall');
+    berr = [berr ber];
+end
+for i = 1:18
+   if (berr(i)== 0)
+       berr(i) = 10^-4.5;
+   end 
+end
+semilogy(SNR,berr,'-vk','linewidth',2.0)
+legend('BPSK','QPSK','16-QAM','64-QAM');
+hold on
+
+
+
+  
