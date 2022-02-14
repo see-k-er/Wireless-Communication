@@ -1,3 +1,3 @@
 # Wireless-Communication
 
-This page contains the MATLAB code for many applications of wireless communications.
+This page contains the MATLAB code for OFDM (Orthogonal Frequency Division Multiplexing).
